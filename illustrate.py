@@ -36,6 +36,10 @@ class BoardIllustrator:
         self.add_rectangle(ly, lx, height, width,
                            color='#463C3D', annotate=True, text_color='white')
 
+    def add_leftover(self, ly, lx, height, width):
+        self.add_rectangle(ly, lx, height, width,
+                           color='green', annotate=True, text_color='white')
+
     def add_rectangle(self, ly: float, lx: float, height: float, width: float, color: str, annotate=False, text_color='black'):
         '''pillow's rectangle makes the border width grow to the inside'''
         tl = (int(lx*self.scaling+self.container_offset[0]),

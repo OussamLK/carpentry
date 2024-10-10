@@ -37,6 +37,9 @@ class Solver:
         self.board = Board(desc['height'], desc['width'], desc['saw_width'])
         assert isinstance(desc['pieces'], list)
         self.pieces = desc['pieces']
+        self._setup()
+
+    def _setup(self):
         self._setup_solver()
         self._initialize_pieces()
         for piece in self.pieces:
@@ -54,15 +57,45 @@ class Solver:
             n_picked = sum(piece.picked.solution_value()
                            for piece in self.pieces)
             if n_picked == len(self.pieces):
-                print('picked all of them')
+                self._setup()
+                picked_vars = [p.picked for p in self.pieces]
+                self.solver.Add(self.solver.Sum(
+                    picked_vars) >= len(self.pieces))
+                if self.board.height > self.board.width:
+                    # self.solver.ClearObjective()
+                    lower_limit = self.lower_limit()
+                    self.solver.Minimize(lower_limit)
+                    status = self.solver.Solve()
+                    if status != pywraplp.Solver.OPTIMAL:
+                        raise Exception(f"something fishy going on {status=}")
+                    cutouts = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10),
+                                      dimensions=(p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
+                               ]
+                    leftover = (Cutout(position_tl=(lower_limit.solution_value(
+                    )/10, 0), dimensions=(self.board.height-lower_limit.solution_value()/10, self.board.width)))
+                    n_picked = sum(piece.picked.solution_value()
+                                   for piece in self.pieces)
+                    print(f"second pass picked {n_picked}")
+                    return Solution(cutouts=cutouts, unfit=[], leftover=[leftover], board=self.board)
+                else:
+                    # self.solver.ClearObjective()
+                    rightmost_limit = self.rightmost_limit()
+                    self.solver.Minimize(rightmost_limit)
+                    self.solver.Solve()
+                    cutouts = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10),
+                                      dimensions=(p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
+                               ]
+                    leftover = (Cutout(position_tl=(0, rightmost_limit.solution_value()/10), dimensions=(
+                        self.board.height, self.board.width-rightmost_limit.solution_value()/10)))
+                    return Solution(cutouts=cutouts, unfit=[], leftover=[leftover], board=self.board)
             else:
                 print(f"picked {int(n_picked)}")
-            cutouts: list[Cutout] = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10), dimensions=(
-                # if p.picked.solution_value() >= .5]
-                p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces]
-            solution = Solution(cutouts=cutouts, leftover=[],
-                                unfit=[], board=self.board)
-            return solution
+                cutouts: list[Cutout] = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10), dimensions=(
+                    # if p.picked.solution_value() >= .5]
+                    p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces]
+                solution = Solution(cutouts=cutouts, leftover=[],
+                                    unfit=[], board=self.board)
+                return solution
         else:
             raise Exception(
                 "I can not find a solution, which should not happen")
@@ -127,6 +160,20 @@ class Solver:
               piece_to_right, at_least_one]  # type: ignore
         for c in cs:
             self.solver.Add(c)
+
+    def lower_limit(self):
+        '''The height of the entire cutouts to minimize'''
+        lower_limit = self.solver.NumVar(0, self.board.height*10, uuid())
+        for p in self.pieces:
+            self.solver.Add(lower_limit >= p.tly + p.solution_height_tmm)
+        return lower_limit
+
+    def rightmost_limit(self):
+        '''The height of the entire cutouts to minimize'''
+        rightmost_limit = self.solver.NumVar(0, self.board.width*10, uuid())
+        for p in self.pieces:
+            self.solver.Add(rightmost_limit >= p.tlx + p.solution_width_tmm)
+        return rightmost_limit
 
     def _decision_var(self):
         return self.solver.IntVar(0.0, 1.0, str(uuid1()))
