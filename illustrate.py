@@ -74,7 +74,10 @@ class BoardIllustrator:
         then is y centered around tl.y + element_height'''
         bbox = self.font.getbbox(caption)
         length, height = int(bbox[2]-bbox[0]), int(bbox[3]-bbox[1])
-        offset = (element_height - length)//2
+        if (element_height < length):
+            logging.info("can not render text, element too small")
+            return
+        offset = (element_height + 10 - length)//2
         txt = Image.new('RGBA', (length+10, height+10),
                         color=(255, 255, 255, 0))
         d = ImageDraw.Draw(txt)
@@ -89,6 +92,9 @@ class BoardIllustrator:
         bbox = self.font.getbbox(caption)
         length, height = int(bbox[2]-bbox[0]), int(bbox[3]-bbox[1])
         offset = (element_width - length)//2
+        if (element_width + 10 < length):
+            logging.info("can not render text, element too small")
+            return
         txt = Image.new('RGBA', (length+10, height+10),
                         color=(255, 255, 255, 0))
         d = ImageDraw.Draw(txt)
