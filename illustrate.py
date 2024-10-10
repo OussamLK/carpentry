@@ -4,13 +4,13 @@ import logging
 
 
 class BoardIllustrator:
-    height: int
-    width: int
+    height: float
+    width: float
     _draw: Any
     _outline_width: int
     MARGIN = 200
 
-    def __init__(self, height: int, width: int):
+    def __init__(self, height: float, width: float):
         self.image_width = 1600
         self.image_height = 1200
         if height/width > self.image_height/self.image_width:
@@ -32,7 +32,11 @@ class BoardIllustrator:
             BoardIllustrator.MARGIN//2, BoardIllustrator.MARGIN // 2)
         self._container(height, width)
 
-    def add_rectangle(self, lx: int, ly: int, height: int, width: int, color: str, annotate=False, text_color='black'):
+    def add_cutout(self, ly, lx, height, width):
+        self.add_rectangle(ly, lx, height, width,
+                           color='#463C3D', annotate=True, text_color='white')
+
+    def add_rectangle(self, ly: float, lx: float, height: float, width: float, color: str, annotate=False, text_color='black'):
         '''pillow's rectangle makes the border width grow to the inside'''
         tl = (int(lx*self.scaling+self.container_offset[0]),
               int(ly*self.scaling+self.container_offset[1]))
@@ -46,7 +50,7 @@ class BoardIllustrator:
     def show(self):
         self.image.show()
 
-    def annotate_box(self, tl: tuple[int, int], height: int, width: int, color):
+    def annotate_box(self, tl: tuple[float, float], height: float, width: float, color):
         '''tl and height width is in terms of mm not pixels'''
         height_caption = f"{height} mm"
         width_caption = f"{width} mm"
