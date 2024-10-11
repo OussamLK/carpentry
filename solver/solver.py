@@ -92,7 +92,9 @@ class Solver:
                 print(f"picked {int(n_picked)}")
                 cutouts: list[Cutout] = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10), dimensions=(
                     # if p.picked.solution_value() >= .5]
-                    p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces]
+                    p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
+                    if p.picked.solution_value() > .5
+                ]
                 solution = Solution(cutouts=cutouts, leftover=[],
                                     unfit=[], board=self.board)
                 return solution
