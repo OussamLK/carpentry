@@ -12,7 +12,7 @@ class BoardIllustrator:
 
     def __init__(self, height: float, width: float):
         self.image_width = 1600
-        self.image_height = 1200
+        self.image_height = 1600
         if height/width > self.image_height/self.image_width:
             scaling = self.image_height/height
             self.image_width = int(width * scaling)
@@ -27,18 +27,18 @@ class BoardIllustrator:
         self.draw = ImageDraw.Draw(self.image)
         self.height = height
         self.width = width
-        self.font = ImageFont.truetype('Arial.ttf', size=25)
+        self.font = ImageFont.truetype('Arial.ttf', size=30)
         self.container_offset = (
             BoardIllustrator.MARGIN//2, BoardIllustrator.MARGIN // 2)
         self._container(height, width)
 
     def add_cutout(self, ly, lx, height, width):
         self.add_rectangle(ly, lx, height, width,
-                           color='#463C3D', annotate=True, text_color='white')
+                           color='#594C4A', annotate=True, text_color='white')
 
     def add_leftover(self, ly, lx, height, width):
         self.add_rectangle(ly, lx, height, width,
-                           color='green', annotate=True, text_color='white')
+                           color='#35DB8C', annotate=True, text_color='black')
 
     def add_rectangle(self, ly: float, lx: float, height: float, width: float, color: str, annotate=False, text_color='black'):
         '''pillow's rectangle makes the border width grow to the inside'''
@@ -77,8 +77,8 @@ class BoardIllustrator:
         if (element_height < length):
             logging.info("can not render text, element too small")
             return
-        offset = (element_height + 10 - length)//2
-        txt = Image.new('RGBA', (length+10, height+10),
+        offset = (element_height + 15 - length)//2
+        txt = Image.new('RGBA', (length+15, height+15),
                         color=(255, 255, 255, 0))
         d = ImageDraw.Draw(txt)
         d.text((5, 5), caption, fill=text_color, font=self.font)
@@ -91,11 +91,11 @@ class BoardIllustrator:
         then is y centered around tl.y + element_height'''
         bbox = self.font.getbbox(caption)
         length, height = int(bbox[2]-bbox[0]), int(bbox[3]-bbox[1])
-        offset = (element_width - length)//2
+        offset = (element_width + 15 - length)//2
         if (element_width + 10 < length):
             logging.info("can not render text, element too small")
             return
-        txt = Image.new('RGBA', (length+10, height+10),
+        txt = Image.new('RGBA', (length+15, height+15),
                         color=(255, 255, 255, 0))
         d = ImageDraw.Draw(txt)
         d.text((5, 5), caption, fill=text_color, font=self.font)
