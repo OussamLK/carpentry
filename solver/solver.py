@@ -27,17 +27,25 @@ class Cutout:
 
 class Solver:
     pieces: list[Piece]
+    board: Board
 
-    def __init__(self, problem_description: str):
+    def __init__(self, height: float, width: float, saw_width: float, pieces: list[Piece]):
         '''problem description format: `B:1200x800 S:2.5 450x300 500x600r 2x450x600`'''
+        self.board = Board(height, width, saw_width)
+        self.pieces = pieces
+        self._setup()
+
+    @staticmethod
+    def from_str(problem_description: str):
         desc = Solver._parse_description(problem_description)
         assert isinstance(desc['height'], float)
         assert isinstance(desc['width'], float)
         assert isinstance(desc['saw_width'], float)
-        self.board = Board(desc['height'], desc['width'], desc['saw_width'])
         assert isinstance(desc['pieces'], list)
-        self.pieces = desc['pieces']
-        self._setup()
+        pieces = desc['pieces']
+        solver = Solver(desc['height'], desc['width'],
+                        desc['saw_width'], pieces)
+        return solver
 
     def _setup(self):
         self._setup_solver()

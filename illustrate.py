@@ -54,6 +54,9 @@ class BoardIllustrator:
     def show(self):
         self.image.show()
 
+    def get_image(self):
+        return self.image.tobytes()
+
     def annotate_box(self, tl: tuple[float, float], height: float, width: float, color):
         '''tl and height width is in terms of mm not pixels'''
         height_caption = f"{height} mm"
