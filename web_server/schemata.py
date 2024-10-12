@@ -4,14 +4,14 @@ from pydantic import BaseModel
 class CreatePiece(BaseModel):
     height: float
     width: float
-    can_rotate: bool
+    canRotate: bool
 
 
 class Piece(BaseModel):
     id: int
     height: float
     width: float
-    can_rotate: bool
+    canRotate: bool
 
 
 class Cutout(BaseModel):
@@ -27,5 +27,5 @@ class Board(BaseModel):
 
 class Problem(BaseModel):
     board: Board
-    saw_width: float
+    sawWidth: float
     pieces: list[CreatePiece]

@@ -15,7 +15,7 @@ from .board import Board
 class Solution:
     cutouts: list[Cutout]
     leftover: list[Cutout]
-    unfit: list[Cutout]
+    unfits: list[Cutout]
     board: Board
 
 
@@ -84,7 +84,7 @@ class Solver:
                     n_picked = sum(piece.picked.solution_value()
                                    for piece in self.pieces)
                     print(f"second pass picked {n_picked}")
-                    return Solution(cutouts=cutouts, unfit=[], leftover=[leftover], board=self.board)
+                    return Solution(cutouts=cutouts, unfits=[], leftover=[leftover], board=self.board)
                 else:
                     # self.solver.ClearObjective()
                     rightmost_limit = self.rightmost_limit()
@@ -95,7 +95,7 @@ class Solver:
                                ]
                     leftover = (Cutout(position_tl=(0, rightmost_limit.solution_value()/10), dimensions=(
                         self.board.height, self.board.width-rightmost_limit.solution_value()/10)))
-                    return Solution(cutouts=cutouts, unfit=[], leftover=[leftover], board=self.board)
+                    return Solution(cutouts=cutouts, unfits=[], leftover=[leftover], board=self.board)
             else:
                 print(f"picked {int(n_picked)}")
                 cutouts: list[Cutout] = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10), dimensions=(
@@ -103,8 +103,13 @@ class Solver:
                     p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
                     if p.picked.solution_value() > .5
                 ]
+                unfit: list[Cutout] = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10), dimensions=(
+                    # if p.picked.solution_value() >= .5]
+                    p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
+                    if p.picked.solution_value() < .5
+                ]
                 solution = Solution(cutouts=cutouts, leftover=[],
-                                    unfit=[], board=self.board)
+                                    unfits=unfit, board=self.board)
                 return solution
         else:
             raise Exception(
@@ -127,7 +132,7 @@ class Solver:
 
     @property
     def solution(self) -> Solution:
-        return Solution(cutouts=[], leftover=[], unfit=[])
+        return Solution(cutouts=[], leftover=[], unfits=[])
 
     def _setup_solver(self):
         solver = pywraplp.Solver.CreateSolver("SAT")

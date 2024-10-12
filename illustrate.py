@@ -54,8 +54,13 @@ class BoardIllustrator:
     def show(self):
         self.image.show()
 
-    def get_image(self):
-        return self.image.tobytes()
+    def get_image(self, format='PNG'):
+        '''format can be JPEG or PNG'''
+        from io import BytesIO
+        with BytesIO() as f:
+            self.image.save(f, format)
+            f.seek(0)
+            return f.read()
 
     def annotate_box(self, tl: tuple[float, float], height: float, width: float, color):
         '''tl and height width is in terms of mm not pixels'''

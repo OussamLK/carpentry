@@ -3,8 +3,11 @@ from . import schemata
 from solver import Solver, Piece as SolverPiece
 import base64
 from illustrate import BoardIllustrator
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+app.add_middleware(CORSMiddleware, allow_origins=[
+                   '*'], allow_methods=['*'], allow_headers=['*'])
 
 
 @app.get('/')
@@ -13,11 +16,11 @@ def index():
 
 
 @app.post('/problems')
-def create_problem(problem: schemata.Problem) -> str:
+def create_problem(problem: schemata.Problem):
     pieces: list[SolverPiece] = [SolverPiece(
-        p.height, p.width, p.can_rotate) for p in problem.pieces]
+        p.height, p.width, p.canRotate) for p in problem.pieces]
     solver = Solver(problem.board.height, problem.board.width,
-                    problem.saw_width, pieces)
+                    problem.sawWidth, pieces)
     solution = solver.solve()
     illustrator = BoardIllustrator(problem.board.height, problem.board.width)
     for cutout in solution.cutouts:
@@ -27,4 +30,6 @@ def create_problem(problem: schemata.Problem) -> str:
         illustrator.add_leftover(
             leftover.position_tl[0], leftover.position_tl[1], leftover.dimensions[0], leftover.dimensions[1])
     b64 = base64.b64encode(illustrator.get_image()).decode('utf-8')
-    return f'''<html><body><img src=""data:image/png;base64,{b64}"></img></body></html>'''
+    unfits = [{"height": unfit.dimensions[0], "width": unfit.dimensions[1]}
+              for unfit in solution.unfits]
+    return dict(illustration=b64, cutouts=solution.cutouts, leftover=solution.leftover, unfits=unfits)
