@@ -48,6 +48,10 @@ body {
 button{
   margin: 1em;
 }
+.piece-button{
+  margin: .5rem;
+}
+
 image {
   height: 500;
 }
