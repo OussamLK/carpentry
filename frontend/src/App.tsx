@@ -176,10 +176,21 @@ function PieceEditor({setPieces}:{setPieces: any}) {
   const [height, setHeight] = useState("");
   const [width, setWidth] = useState("");
   const [canRotate, setCanRotate] = useState(false)
+  const [validPiece, setValidPiece] = useState(false)
 
-  function onAdd(){
+  function validate(height:string, width:string){
     const heightF = Number.parseFloat(height);
     const widthF = Number.parseFloat(width)
+    if (Number.isNaN(heightF) || Number.isNaN(widthF)){
+      setValidPiece(false)
+    }
+    else setValidPiece(true)
+
+  }
+
+  function onAdd(){
+    const heightF = Number.parseFloat(height.replace(',', '.'));
+    const widthF = Number.parseFloat(width.replace(',', '.'))
     //@ts-ignore
     setPieces(prev=>[...prev, {id: prev.length, height:heightF, width:widthF, canRotate}])
     setHeight("")
@@ -193,7 +204,7 @@ function PieceEditor({setPieces}:{setPieces: any}) {
         Hauteur (mm): &nbsp;{" "}
         <FloatInput
           value={height}
-          onChange={(v) => setHeight(v)}
+          onChange={(v) => {setHeight(v); validate(v, width)}}
           onError={() => 0}
         />
       </label>
@@ -202,16 +213,17 @@ function PieceEditor({setPieces}:{setPieces: any}) {
         Largeur (mm): &nbsp;{" "}
         <FloatInput
           value={width}
-          onChange={(v) => setWidth(v)}
+          onChange={(v) => {setWidth(v); validate(height, v)}}
           onError={() => 0}
         />
       </label>{" "}
       <br />
       <label>
-        Peut tourner: <input checked={canRotate} onChange={e=>setCanRotate(prev=>!prev)} type="checkbox"></input>
+        Peut tourner: <input checked={canRotate}
+          onChange={e=>setCanRotate(prev=>!prev)} type="checkbox"></input>
       </label>
       <br />
-      <button onClick={onAdd}>Ajouter Coupe</button>
+      <button disabled={!validPiece} onClick={onAdd}>Ajouter Coupe</button>
     </div>
   );
 }
