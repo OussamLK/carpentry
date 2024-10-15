@@ -99,6 +99,9 @@ class SolverFit:
         start_time = time.time()
         status = self.solver.Solve()
         logging.debug(f"First solver pass took {time.time() - start_time}")
+        if status != pywraplp.Solver.OPTIMAL:
+            raise Exception(
+                "fit_pieces phase did not finish excuting, solver status not optimal")
         n_picked = sum(
             p.picked.solution_value() for p in self.pieces)
         print(f"picked {int(n_picked)}")
