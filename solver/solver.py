@@ -63,6 +63,30 @@ class Solver:
             for p2 in self.pieces[i+1:]:
                 self._add_constraints(p1, p2)
 
+    def _fit_pieces(self):
+        objective = self.solver.Sum(
+            piece.area*piece.picked for piece in self.pieces)
+        self.solver.Maximize(objective)
+        start_time = time.time()
+        status = self.solver.Solve()
+        logging.debug(f"First solver pass took {time.time() - start_time}")
+        n_picked = sum(
+            p.picked.solution_value() for p in self.pieces)
+        print(f"picked {int(n_picked)}")
+        cutouts: list[Cutout] = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10), dimensions=(
+            # if p.picked.solution_value() >= .5]
+            p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
+            if p.picked.solution_value() > .5
+        ]
+        unfit: list[Cutout] = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10), dimensions=(
+            # if p.picked.solution_value() >= .5]
+            p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
+            if p.picked.solution_value() < .5
+        ]
+        solution = Solution(cutouts=cutouts, leftover=[],
+                            unfits=unfit, board=self.board)
+        return solution
+
     def solve(self) -> Solution:
         objective = self.solver.Sum(
             piece.area*piece.picked for piece in self.pieces)
