@@ -8,6 +8,7 @@ class Board:
     saw_width: float
 
     def big_m(self) -> int:
+        '''10x the max of height and width in tenths of mm'''
         return max(self.height_tmm, self.width_tmm)*10
 
     @property

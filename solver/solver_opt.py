@@ -29,16 +29,13 @@ class SolverOpt:
 
     def solve_opt(self) -> Solution:
         self._setup()
-        picked_vars = [p.picked for p in self.pieces]
-        self.solver.Add(self.solver.Sum(
-            picked_vars) >= len(self.pieces))
         if self.board.height > self.board.width:
             # self.solver.ClearObjective()
             lower_limit = self.lower_limit()
             self.solver.Minimize(lower_limit)
             start_time = time.time()
             status = self.solver.Solve()
-            logging.debug(f"Second solver pass took {
+            logging.debug(f"Optimization solver pass took {
                 time.time()-start_time}")
             if status != pywraplp.Solver.OPTIMAL:
                 raise Exception(f"something fishy going on {status=}")
@@ -47,9 +44,6 @@ class SolverOpt:
                        ]
             leftover = (Cutout(position_tl=(lower_limit.solution_value(
             )/10, 0), dimensions=(self.board.height-lower_limit.solution_value()/10, self.board.width)))
-            n_picked = sum(piece.picked.solution_value()
-                           for piece in self.pieces)
-            print(f"second pass picked {n_picked}")
             return Solution(cutouts=cutouts, unfits=[], leftover=[leftover], board=self.board)
         else:
             # self.solver.ClearObjective()
@@ -74,18 +68,17 @@ class SolverOpt:
         for piece in self.pieces:
             tlx, tly = [self.solver.NumVar(
                 0, self.infinity, uuid()) for _ in range(2)]
-            picked = self.solver.IntVar(0, 1, uuid())
             rotated = self.solver.IntVar(
                 0, 1, uuid()) if piece.can_rotate else None
-            piece.initialize(tlx, tly, picked, rotated)
+            piece.initialize(tlx, tly, None, rotated)
 
     def create_inside_board_constraint(self, piece: Piece):
         '''The constraints so that the piece fits in the board'''
 
         self.solver.Add(piece.tlx + piece.solution_width_tmm <=
-                        self.board.width_tmm + self.board.big_m()*(1-piece.picked))
+                        self.board.width_tmm)
         self.solver.Add(piece.tly + piece.solution_height_tmm <=
-                        self.board.height_tmm + self.board.big_m()*(1-piece.picked))
+                        self.board.height_tmm)
 
     def _add_constraints(self, p1: Piece,  p2: Piece):
         M = self.board.big_m()
