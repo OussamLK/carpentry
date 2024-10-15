@@ -223,12 +223,11 @@ function Piece({ piece, setPieces, setPieceEditorPresets }: { piece: Piece; setP
   }
   return (
     <li>
-      Coupe {piece.id + 1}: {piece.height} mm x {piece.width} mm.{" "}
+      <span>Coupe {piece.id + 1}: &nbsp; ( {piece.copies}x ) {piece.height} mm x {piece.width} mm.{" "}</span>
       {piece.canRotate ? "Peut tourner" : "fixe"}{" "}
-      <button className="piece-button" onClick={() => editPiece(piece.id)}>modifier</button>
-      <button className="piece-button" onClick={() => deletePiece(piece.id)}>supprimer</button>
       <button className="piece-button" onClick={() => incrementCopies(piece.id)}>dupliquer</button>
-      <span>(x{piece.copies})</span>
+      <button className="piece-button" onClick={() => deletePiece(piece.id)}>supprimer</button>
+      <button className="piece-button" onClick={() => editPiece(piece.id)}>modifier</button>
     </li>
   );
 }
