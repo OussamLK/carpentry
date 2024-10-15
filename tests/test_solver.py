@@ -24,5 +24,5 @@ def test_solver():
             reference_solution.unfits)
         if current_solution.leftover:
             assert current_solution.leftover[0].dimensions == reference_solution.leftover[0].dimensions
-        assert set(c.dimensions for c in reference_solution.cutouts) == set(
-            c.dimensions for c in current_solution.cutouts)
+        assert set(c.straightened_dimensions for c in reference_solution.cutouts) == set(
+            c.straightened_dimensions for c in current_solution.cutouts)

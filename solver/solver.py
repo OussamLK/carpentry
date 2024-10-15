@@ -9,6 +9,7 @@ import logging
 from uuid import uuid1
 from .piece import Piece
 from .board import Board
+import time
 
 
 @dataclass
@@ -23,6 +24,12 @@ class Solution:
 class Cutout:
     position_tl: tuple[float, float]
     dimensions: tuple[float, float]
+
+    @property
+    def straightened_dimensions(self) -> tuple[float, float]:
+        '''to compare piece in test output the piece is straighened'''
+        h, w = self.dimensions
+        return (h, w) if h > w else (w, h)
 
 
 class Solver:
@@ -60,7 +67,9 @@ class Solver:
         objective = self.solver.Sum(
             piece.area*piece.picked for piece in self.pieces)
         self.solver.Maximize(objective)
+        start_time = time.time()
         status = self.solver.Solve()
+        logging.debug(f"First solver pass took {time.time() - start_time}")
         if status == pywraplp.Solver.OPTIMAL:
             n_picked = sum(piece.picked.solution_value()
                            for piece in self.pieces)
@@ -73,7 +82,10 @@ class Solver:
                     # self.solver.ClearObjective()
                     lower_limit = self.lower_limit()
                     self.solver.Minimize(lower_limit)
+                    start_time = time.time()
                     status = self.solver.Solve()
+                    logging.debug(f"Second solver pass took {
+                                  time.time()-start_time}")
                     if status != pywraplp.Solver.OPTIMAL:
                         raise Exception(f"something fishy going on {status=}")
                     cutouts = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10),
