@@ -74,7 +74,7 @@ function App() {
       sawWidth: sawWidthF,
       pieces,
     };
-  }, [boardHeight, boardWidth, pieces]);
+  }, [boardHeight, boardWidth, pieces, sawWidth]);
   async function getSolution() {
     if (problem) {
       setImageData("loading");
@@ -85,7 +85,8 @@ function App() {
         }
       }
       const flattenedProblem = {...problem, pieces:flattenedPieces}
-      console.debug("submitting solution...");
+      console.debug("submitting problem...");
+      console.debug("saw width is: ", problem.sawWidth)
       const { illustration, unfits } = await api.solution(flattenedProblem);
       setImageData(illustration);
       setUnfits(unfits);
