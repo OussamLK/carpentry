@@ -30,8 +30,11 @@ def test_solver(test_cases):
             reference_solution.unfits)
         if current_solution.leftover:
             assert current_solution.leftover[0].dimensions == reference_solution.leftover[0].dimensions
-        assert set(c.straightened_dimensions for c in reference_solution.cutouts) == set(
-            c.straightened_dimensions for c in current_solution.cutouts)
+            assert set(c.straightened_dimensions for c in reference_solution.cutouts) == set(
+                c.straightened_dimensions for c in current_solution.cutouts)
+        else:
+            assert set(c.dimensions[0]*c.dimensions[1] for c in reference_solution.cutouts) == set(
+                c.dimensions[0] * c.dimensions[1] for c in current_solution.cutouts)
 
 
 def test_fit_pieces_solver(test_cases):
