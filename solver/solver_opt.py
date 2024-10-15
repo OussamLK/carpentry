@@ -15,6 +15,7 @@ class SolverOpt:
     def __init__(self, board: Board, pieces: list[Piece]):
         '''problem description format: `B:1200x800 S:2.5 450x300 500x600r 2x450x600`'''
         self.board = board
+        logging.debug(f"Board has a saw width of: {board.saw_width}")
         self.pieces = pieces
         self._setup()
 

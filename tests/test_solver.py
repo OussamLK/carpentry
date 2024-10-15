@@ -25,7 +25,7 @@ def test_parser():
 def test_solver(test_cases):
     for test_case in test_cases:
         problem, reference_solution = test_case['problem'], test_case['solution']
-        current_solution = Solver(**problem).solve()
+        current_solution = Solver(**problem).solve(timeout_sec=3)
         assert len(current_solution.unfits) == len(
             reference_solution.unfits)
         if current_solution.leftover:

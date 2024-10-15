@@ -27,6 +27,7 @@ class API {
     console.debug(`solution data is: `, solutionData);
     const { illustration, unfits } = solutionData as {
       illustration: string;
+      printIllustration: string
       unfits: Piece[];
     };
     return { illustration, unfits };
@@ -147,8 +148,8 @@ function Unfits({ unfits }: { unfits: Piece[] }) {
       <div>
         <h3>Je n'ai pas pu inclure:</h3>
         <ol>
-          {unfits.map((u) => (
-            <li key={u.id}>
+          {unfits.map((u, id) => (
+            <li key={id}>
               Coupe: {u.height}mm x {u.width}mm
             </li>
           ))}

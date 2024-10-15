@@ -49,7 +49,8 @@ class Solver:
         return dict(height=height, width=width, saw_width=saw_width, pieces=pieces)
 
     def solve(self, timeout_sec: float = 5) -> Solution:
-        solution = SolverFit(self.board, self.pieces)._fit_pieces()
+        solution = SolverFit(self.board, self.pieces)._fit_pieces(
+            timeout_sec=timeout_sec)
         n_picked = len(solution.cutouts)
         if n_picked < len(self.pieces):
             return solution
@@ -77,16 +78,16 @@ class SolverFit:
             for p2 in self.pieces[i+1:]:
                 self._add_constraints(p1, p2)
 
-    def _fit_pieces(self):
+    def _fit_pieces(self, timeout_sec: float = 5):
         objective = self.solver.Sum(
             piece.area*piece.picked for piece in self.pieces)
         self.solver.Maximize(objective)
         start_time = time.time()
+        self.solver.set_time_limit(int(timeout_sec*1000))
         status = self.solver.Solve()
         logging.debug(f"First solver pass took {time.time() - start_time}")
         if status != pywraplp.Solver.OPTIMAL:
-            raise Exception(
-                "fit_pieces phase did not finish excuting, solver status not optimal")
+            logging.info("solver fit not optimal")
         n_picked = sum(
             p.picked.solution_value() for p in self.pieces)
         print(f"picked {int(n_picked)}")

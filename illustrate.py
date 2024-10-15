@@ -32,13 +32,13 @@ class BoardIllustrator:
             BoardIllustrator.MARGIN//2, BoardIllustrator.MARGIN // 2)
         self._container(height, width)
 
-    def add_cutout(self, ly, lx, height, width):
+    def add_cutout(self, ly, lx, height, width, color="#594C4A", text_color='white'):
         self.add_rectangle(ly, lx, height, width,
-                           color='#594C4A', annotate=True, text_color='white')
+                           color=color, annotate=True, text_color=text_color)
 
-    def add_leftover(self, ly, lx, height, width):
+    def add_leftover(self, ly, lx, height, width, color='#35DB8C', text_color='black'):
         self.add_rectangle(ly, lx, height, width,
-                           color='#35DB8C', annotate=True, text_color='black')
+                           color=color, annotate=True, text_color=text_color)
 
     def add_rectangle(self, ly: float, lx: float, height: float, width: float, color: str, annotate=False, text_color='black'):
         '''pillow's rectangle makes the border width grow to the inside'''
