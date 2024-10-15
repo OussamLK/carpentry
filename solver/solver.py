@@ -66,10 +66,13 @@ class Solver:
         pieces = [Piece.parse_piece(piece) for piece in pieces]
         return dict(height=height, width=width, saw_width=saw_width, pieces=pieces)
 
-    def solve(self):
-        solver = SolverFit(self.board, self.pieces)
-        solution = solver.solve()
-        return solution
+    def solve(self) -> Solution:
+        solution = SolverFit(self.board, self.pieces)._fit_pieces()
+        n_picked = len(solution.cutouts)
+        if n_picked < len(self.pieces):
+            return solution
+        solver_opt = SolverOpt(self.board, self.pieces)
+        return solver_opt.solve_opt()
 
 
 class SolverFit:
@@ -118,46 +121,6 @@ class SolverFit:
         solution = Solution(cutouts=cutouts, leftover=[],
                             unfits=unfit, board=self.board)
         return solution
-
-    def solve(self) -> Solution:
-        solution = self._fit_pieces()
-        n_picked = len(solution.cutouts)
-        if n_picked < len(self.pieces):
-            return solution
-        self._setup()
-        picked_vars = [p.picked for p in self.pieces]
-        self.solver.Add(self.solver.Sum(
-            picked_vars) >= len(self.pieces))
-        if self.board.height > self.board.width:
-            # self.solver.ClearObjective()
-            lower_limit = self.lower_limit()
-            self.solver.Minimize(lower_limit)
-            start_time = time.time()
-            status = self.solver.Solve()
-            logging.debug(f"Second solver pass took {
-                time.time()-start_time}")
-            if status != pywraplp.Solver.OPTIMAL:
-                raise Exception(f"something fishy going on {status=}")
-            cutouts = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10),
-                              dimensions=(p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
-                       ]
-            leftover = (Cutout(position_tl=(lower_limit.solution_value(
-            )/10, 0), dimensions=(self.board.height-lower_limit.solution_value()/10, self.board.width)))
-            n_picked = sum(piece.picked.solution_value()
-                           for piece in self.pieces)
-            print(f"second pass picked {n_picked}")
-            return Solution(cutouts=cutouts, unfits=[], leftover=[leftover], board=self.board)
-        else:
-            # self.solver.ClearObjective()
-            rightmost_limit = self.rightmost_limit()
-            self.solver.Minimize(rightmost_limit)
-            self.solver.Solve()
-            cutouts = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10),
-                              dimensions=(p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
-                       ]
-            leftover = (Cutout(position_tl=(0, rightmost_limit.solution_value()/10), dimensions=(
-                self.board.height, self.board.width-rightmost_limit.solution_value()/10)))
-            return Solution(cutouts=cutouts, unfits=[], leftover=[leftover], board=self.board)
 
     def _setup_solver(self):
         solver = pywraplp.Solver.CreateSolver("CP-SAT")
@@ -239,38 +202,7 @@ class SolverOpt:
             for p2 in self.pieces[i+1:]:
                 self._add_constraints(p1, p2)
 
-    def _fit_pieces(self):
-        objective = self.solver.Sum(
-            piece.area*piece.picked for piece in self.pieces)
-        self.solver.Maximize(objective)
-        start_time = time.time()
-        status = self.solver.Solve()
-        logging.debug(f"First solver pass took {time.time() - start_time}")
-        if status != pywraplp.Solver.OPTIMAL:
-            raise Exception(
-                "fit_pieces phase did not finish excuting, solver status not optimal")
-        n_picked = sum(
-            p.picked.solution_value() for p in self.pieces)
-        print(f"picked {int(n_picked)}")
-        cutouts: list[Cutout] = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10), dimensions=(
-            # if p.picked.solution_value() >= .5]
-            p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
-            if p.picked.solution_value() > .5
-        ]
-        unfit: list[Cutout] = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10), dimensions=(
-            # if p.picked.solution_value() >= .5]
-            p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
-            if p.picked.solution_value() < .5
-        ]
-        solution = Solution(cutouts=cutouts, leftover=[],
-                            unfits=unfit, board=self.board)
-        return solution
-
-    def solve(self) -> Solution:
-        solution = self._fit_pieces()
-        n_picked = len(solution.cutouts)
-        if n_picked < len(self.pieces):
-            return solution
+    def solve_opt(self) -> Solution:
         self._setup()
         picked_vars = [p.picked for p in self.pieces]
         self.solver.Add(self.solver.Sum(

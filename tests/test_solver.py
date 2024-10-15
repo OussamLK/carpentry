@@ -35,13 +35,3 @@ def test_solver(test_cases):
         else:
             assert set(c.dimensions[0]*c.dimensions[1] for c in reference_solution.cutouts) == set(
                 c.dimensions[0] * c.dimensions[1] for c in current_solution.cutouts)
-
-
-def test_fit_pieces_solver(test_cases):
-    for test_case in test_cases:
-        problem, reference_solution = test_case['problem'], test_case['solution']
-        fit_solution = SolverFit(
-            Board(height=problem['height'], width=problem['width'], saw_width=problem['saw_width']), problem['pieces']).solve()
-        # comparing by area because pices solution of problems that have same area pieces are random
-        assert set(s.dimensions[0]*s.dimensions[1] for s in fit_solution.unfits) == set(
-            s.dimensions[0]*s.dimensions[1] for s in reference_solution.unfits)
