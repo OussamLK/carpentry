@@ -48,13 +48,13 @@ class Solver:
         pieces = [Piece.parse_piece(piece) for piece in pieces]
         return dict(height=height, width=width, saw_width=saw_width, pieces=pieces)
 
-    def solve(self) -> Solution:
+    def solve(self, timeout_sec: float = 5) -> Solution:
         solution = SolverFit(self.board, self.pieces)._fit_pieces()
         n_picked = len(solution.cutouts)
         if n_picked < len(self.pieces):
             return solution
         solver_opt = SolverOpt(self.board, self.pieces)
-        return solver_opt.solve_opt()
+        return solver_opt.solve_opt(timeout_sec=timeout_sec)
 
 
 class SolverFit:

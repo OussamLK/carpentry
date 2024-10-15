@@ -27,18 +27,19 @@ class SolverOpt:
             for p2 in self.pieces[i+1:]:
                 self._add_constraints(p1, p2)
 
-    def solve_opt(self) -> Solution:
+    def solve_opt(self, timeout_sec: float = 5) -> Solution:
         self._setup()
         if self.board.height > self.board.width:
             # self.solver.ClearObjective()
             lower_limit = self.lower_limit()
             self.solver.Minimize(lower_limit)
             start_time = time.time()
+            self.solver.set_time_limit(int(timeout_sec*1000))
             status = self.solver.Solve()
             logging.debug(f"Optimization solver pass took {
                 time.time()-start_time}")
             if status != pywraplp.Solver.OPTIMAL:
-                raise Exception(f"something fishy going on {status=}")
+                logging.info("Returning suboptimal solution")
             cutouts = [Cutout(position_tl=(p.tly.solution_value()/10, p.tlx.solution_value()/10),
                               dimensions=(p.solution_height_tmm.solution_value()/10, p.solution_width_tmm.solution_value()/10)) for p in self.pieces
                        ]
