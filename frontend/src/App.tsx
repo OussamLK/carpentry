@@ -45,6 +45,7 @@ type Piece = {
   height: number;
   width: number;
   canRotate: boolean;
+  copies: number
 };
 
 type Board = {
@@ -77,8 +78,15 @@ function App() {
   async function getSolution() {
     if (problem) {
       setImageData("loading");
+      const flattenedPieces = []
+      for (const piece of problem.pieces){
+        for (let i = 0; i < piece.copies; i+= 1){
+          flattenedPieces.push(piece)
+        }
+      }
+      const flattenedProblem = {...problem, pieces:flattenedPieces}
       console.debug("submitting solution...");
-      const { illustration, unfits } = await api.solution(problem);
+      const { illustration, unfits } = await api.solution(flattenedProblem);
       setImageData(illustration);
       setUnfits(unfits);
     }
@@ -151,7 +159,7 @@ function Unfits({ unfits }: { unfits: Piece[] }) {
 
 function Image({ data }: { data: undefined | "loading" | string }) {
   if (data == "loading") {
-    return <p>Calcule de solution...</p>;
+    return <p>Calcul de solution...</p>;
   } else if (data !== undefined) {
     return <img src={`data:image/png;base64,${data}`} height={"800em"} />;
   }
@@ -180,7 +188,21 @@ function Pieces({
 
 function Piece({ piece, setPieces, setPieceEditorPresets }: { piece: Piece; setPieces: any, setPieceEditorPresets:any }) {
   function deletePiece(id: number) {
-    setPieces(prev => prev.filter((p) => p.id !== id));
+    setPieces(prev => {
+      piece = prev.find(p=>p.id===id);
+      if (piece.copies === 1){
+        return prev.filter((p) => p.id !== id)
+      }
+      else {
+        let newPieces = []
+        for (const piece of prev){
+          if (piece.id !== id) newPieces.push(piece)
+          else newPieces.push({...piece, copies: piece.copies - 1})
+        }
+        return newPieces
+      }
+      
+    });
   }
   function editPiece(id: number) {
     setPieces(prev => prev.filter((p) => p.id !== id));
@@ -189,13 +211,24 @@ function Piece({ piece, setPieces, setPieceEditorPresets }: { piece: Piece; setP
   function duplicatePiece() {
    setPieces(prev=> [...prev, {...piece, id:prev.length}]) 
   }
+  function incrementCopies(id:number){
+    setPieces(prev=>{
+      let newPieces = []
+      for (const piece of prev){
+        if (piece.id != id) newPieces.push(piece)
+        else newPieces.push({...piece, copies:piece.copies + 1})
+      }
+      return newPieces
+    })
+  }
   return (
     <li>
       Coupe {piece.id + 1}: {piece.height} mm x {piece.width} mm.{" "}
       {piece.canRotate ? "Peut tourner" : "fixe"}{" "}
-      <button className="piece-button" onClick={() => deletePiece(piece.id)}>supprimer</button>
       <button className="piece-button" onClick={() => editPiece(piece.id)}>modifier</button>
-      <button className="piece-button" onClick={() => duplicatePiece(piece.id)}>dupliquer</button>
+      <button className="piece-button" onClick={() => deletePiece(piece.id)}>supprimer</button>
+      <button className="piece-button" onClick={() => incrementCopies(piece.id)}>dupliquer</button>
+      <span>(x{piece.copies})</span>
     </li>
   );
 }
@@ -228,7 +261,7 @@ function PieceEditor({ setPieces, presets }: { setPieces: any, presets:any }) {
     //@ts-ignore
     setPieces((prev) => [
       ...prev,
-      { id: prev.length, height: heightF, width: widthF, canRotate },
+      { id: (prev.length === 0 ? 0 : (Math.max(...prev.map(p=>p.id)) + 1)), height: heightF, width: widthF, canRotate, copies: 1 },
     ]);
     setHeight("");
     setWidth("");
