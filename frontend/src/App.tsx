@@ -3,7 +3,7 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 
-const DOMAIN = "http://127.0.0.1:8000";
+const DOMAIN = "/api";
 
 class API {
   domain: string;

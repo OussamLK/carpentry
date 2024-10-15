@@ -19,7 +19,7 @@ class Solution:
     board: Board
 
 
-@dataclass
+@dataclass(frozen=True)
 class Cutout:
     position_tl: tuple[float, float]
     dimensions: tuple[float, float]
@@ -135,7 +135,7 @@ class Solver:
         return Solution(cutouts=[], leftover=[], unfits=[])
 
     def _setup_solver(self):
-        solver = pywraplp.Solver.CreateSolver("SAT")
+        solver = pywraplp.Solver.CreateSolver("CP-SAT")
         if not solver:
             raise Exception("solver has not been created")
         self.solver = solver
