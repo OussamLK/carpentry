@@ -65,14 +65,14 @@ class Piece:
         if self.can_rotate:
             return self.rotated*self.width_tmm + (1-self.rotated)*self.height_tmm
         else:
-            return self.height_tmm + 0 * self.picked  # a hack to convert it to Variable
+            return self.height_tmm + 0 * self.tlx  # a hack to convert it to Variable
 
     @property
     def solution_width_tmm(self):
         if self.can_rotate:
             return self.rotated*self.height_tmm + (1-self.rotated)*self.width_tmm
         else:
-            return self.width_tmm + 0 * self.picked  # a hack to convert it to variable
+            return self.width_tmm + 0 * self.tlx  # a hack to convert it to variable
 
 
 def uuid():
