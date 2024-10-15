@@ -33,14 +33,11 @@ class Cutout:
 
 
 class Solver:
-    pieces: list[Piece]
-    board: Board
 
     def __init__(self, height: float, width: float, saw_width: float, pieces: list[Piece]):
         '''problem description format: `B:1200x800 S:2.5 450x300 500x600r 2x450x600`'''
         self.board = Board(height, width, saw_width)
         self.pieces = pieces
-        self._setup()
 
     @staticmethod
     def from_str(problem_description: str):
@@ -53,6 +50,38 @@ class Solver:
         solver = Solver(desc['height'], desc['width'],
                         desc['saw_width'], pieces)
         return solver
+
+    @staticmethod
+    def _parse_description(desc: str):
+        [board, saw, *pieces] = desc.split()
+        assert board.startswith(
+            'B:'), "Board description should start with a `B:...`"
+        dims = board[2:].split('x')
+        assert len(dims), f"You should have 2 dimensions for the board but got {
+            dims}"
+        height, width = [float(dim) for dim in dims]
+        assert saw.startswith(
+            "S:"), 'Second entry in problem description should be S:<saw width>'
+        saw_width = float(saw[2:])
+        pieces = [Piece.parse_piece(piece) for piece in pieces]
+        return dict(height=height, width=width, saw_width=saw_width, pieces=pieces)
+
+    def solve(self):
+        solver = SolverFit(self.board, self.pieces)
+        solution = solver.solve()
+        return solution
+
+
+class SolverFit:
+    '''Checks if all the pieces fit inside the board'''
+    pieces: list[Piece]
+    board: Board
+
+    def __init__(self, board: Board, pieces: list[Piece]):
+        '''problem description format: `B:1200x800 S:2.5 450x300 500x600r 2x450x600`'''
+        self.board = board
+        self.pieces = pieces
+        self._setup()
 
     def _setup(self):
         self._setup_solver()
@@ -150,25 +179,6 @@ class Solver:
         else:
             raise Exception(
                 "I can not find a solution, which should not happen")
-
-    @staticmethod
-    def _parse_description(desc: str):
-        [board, saw, *pieces] = desc.split()
-        assert board.startswith(
-            'B:'), "Board description should start with a `B:...`"
-        dims = board[2:].split('x')
-        assert len(dims), f"You should have 2 dimensions for the board but got {
-            dims}"
-        height, width = [float(dim) for dim in dims]
-        assert saw.startswith(
-            "S:"), 'Second entry in problem description should be S:<saw width>'
-        saw_width = float(saw[2:])
-        pieces = [Piece.parse_piece(piece) for piece in pieces]
-        return dict(height=height, width=width, saw_width=saw_width, pieces=pieces)
-
-    @property
-    def solution(self) -> Solution:
-        return Solution(cutouts=[], leftover=[], unfits=[])
 
     def _setup_solver(self):
         solver = pywraplp.Solver.CreateSolver("CP-SAT")
