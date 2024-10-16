@@ -94,6 +94,11 @@ function App() {
     }
   }
 
+  async function printImage(){
+    const w  = window.open()
+    w?.document.write(`<html><body><img src="data:image/jpeg;base64,${imageData}" style="height:auto; width:auto"></img></body></html><script>window.print()</script>`)
+  }
+
   return (
     <div>
       <form onSubmit={(e) => e.preventDefault()}>
@@ -137,7 +142,7 @@ function App() {
       <br />
       <Image data={imageData} />
       <br />
-      <button disabled={imageData === undefined}>Imprimer</button>
+      <button onClick={printImage} disabled={imageData === undefined}>Imprimer</button>
     </div>
   );
 }

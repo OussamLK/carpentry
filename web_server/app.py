@@ -1,21 +1,26 @@
+import sys
+import os
 from fastapi import FastAPI
 from . import schemata
 from solver import Solver, Piece as SolverPiece
 import base64
 from illustrate import BoardIllustrator
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=[
                    '*'], allow_methods=['*'], allow_headers=['*'])
+dist_path = os.path.join('frontend', 'dist')
+app.mount("/static", StaticFiles(directory=dist_path), name="static")
 
 
-@app.get('/')
+@app.get('/api')
 def index():
     return "hello from fastapi"
 
 
-@app.post('/problems')
+@app.post('/api/problems')
 def create_problem(problem: schemata.Problem):
     pieces: list[SolverPiece] = [SolverPiece(
         p.height, p.width, p.canRotate) for p in problem.pieces]
@@ -37,7 +42,8 @@ def create_problem(problem: schemata.Problem):
     for leftover in solution.leftover:
         print_illustrator.add_cutout(
             leftover.position_tl[0], leftover.position_tl[1], leftover.dimensions[0], leftover.dimensions[1], color='white', text_color='black')
-    b64 = base64.b64encode(illustrator.get_image(format='JPEG')).decode('utf-8')
+    b64 = base64.b64encode(illustrator.get_image(
+        format='JPEG')).decode('utf-8')
     print_b64 = base64.b64encode(print_illustrator.get_image()).decode('utf-8')
     unfits = [{"height": unfit.dimensions[0], "width": unfit.dimensions[1]}
               for unfit in solution.unfits]
