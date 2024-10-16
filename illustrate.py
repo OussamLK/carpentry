@@ -58,7 +58,8 @@ class BoardIllustrator:
         '''format can be JPEG or PNG'''
         from io import BytesIO
         with BytesIO() as f:
-            self.image.save(f, format)
+            im = self.image.convert('RGB')
+            im.save(f, format)
             f.seek(0)
             return f.read()
 

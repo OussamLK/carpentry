@@ -1,9 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
-const DOMAIN = "/api";
+const DOMAIN = import.meta.env.VITE_DOMAIN
 
 class API {
   domain: string;
@@ -11,7 +9,7 @@ class API {
     this.domain = domain;
   }
   post = async (route: string, body: any) => {
-    const resp = await fetch(this.domain + "/problems", {
+    const resp = await fetch(this.domain + route, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -35,6 +33,8 @@ class API {
 }
 
 const api = new API(DOMAIN);
+
+console.debug(`API domain is ${DOMAIN}`)
 
 type Problem = {
   board: Board;
@@ -121,7 +121,7 @@ function App() {
             Largeur de la scie: &nbsp;
             <FloatInput
               value={sawWidth}
-              onError={(e) => 0}
+              onError={() => 0}
               onChange={(v) => setSawWidth(v)}
             />
           </label>
@@ -160,10 +160,17 @@ function Unfits({ unfits }: { unfits: Piece[] }) {
 }
 
 function Image({ data }: { data: undefined | "loading" | string }) {
+  function openImage(src:string){
+    const w = window.open();
+    if (!w) throw('count not open window')
+    w.document.write(`<img src='${src}' style="width:auto; height:auto;"></img>`)
+
+  }
   if (data == "loading") {
     return <p>Calcul de solution...</p>;
   } else if (data !== undefined) {
-    return <img src={`data:image/png;base64,${data}`} height={"800em"} />;
+    const src = `data:image/jpeg;base64,${data}`
+    return <a onClick={()=>openImage(src)} ><img src={src} height={"800em"} /></a>;
   }
 }
 
@@ -190,10 +197,10 @@ function Pieces({
 
 function Piece({ piece, setPieces, setPieceEditorPresets }: { piece: Piece; setPieces: any, setPieceEditorPresets:any }) {
   function deletePiece(id: number) {
-    setPieces(prev => {
-      piece = prev.find(p=>p.id===id);
+    setPieces((prev:any) => {
+      piece = prev.find((p:any)=>p.id===id);
       if (piece.copies === 1){
-        return prev.filter((p) => p.id !== id)
+        return prev.filter((p:any) => p.id !== id)
       }
       else {
         let newPieces = []
@@ -207,14 +214,11 @@ function Piece({ piece, setPieces, setPieceEditorPresets }: { piece: Piece; setP
     });
   }
   function editPiece(id: number) {
-    setPieces(prev => prev.filter((p) => p.id !== id));
+    setPieces((prev :any)=> prev.filter((p:any) => p.id !== id));
     setPieceEditorPresets(piece)
   }
-  function duplicatePiece() {
-   setPieces(prev=> [...prev, {...piece, id:prev.length}]) 
-  }
   function incrementCopies(id:number){
-    setPieces(prev=>{
+    setPieces((prev:any)=>{
       let newPieces = []
       for (const piece of prev){
         if (piece.id != id) newPieces.push(piece)
@@ -260,7 +264,7 @@ function PieceEditor({ setPieces, presets }: { setPieces: any, presets:any }) {
     const heightF = Number.parseFloat(height.replace(",", "."));
     const widthF = Number.parseFloat(width.replace(",", "."));
     //@ts-ignore
-    setPieces((prev) => [
+    setPieces((prev:Piece[]) => [
       ...prev,
       { id: (prev.length === 0 ? 0 : (Math.max(...prev.map(p=>p.id)) + 1)), height: heightF, width: widthF, canRotate, copies: 1 },
     ]);
@@ -300,7 +304,7 @@ function PieceEditor({ setPieces, presets }: { setPieces: any, presets:any }) {
         Peut tourner:{" "}
         <input
           checked={canRotate}
-          onChange={(e) => setCanRotate((prev) => !prev)}
+          onChange={() => setCanRotate((prev) => !prev)}
           type="checkbox"
         ></input>
       </label>
